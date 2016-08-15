@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/fsouza/go-dockerclient"
@@ -9,6 +10,8 @@ import (
 var client *docker.Client
 
 func main() {
+
+	fmt.Println("Starting devctl-proxy")
 
 	var err error
 	endpoint := "unix:///var/run/docker.sock"

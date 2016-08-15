@@ -14,7 +14,45 @@ var nginxReload = true
 
 func init() {
 	var err error
-	tmpl, err = template.New("nginx.tmpl").ParseFiles("./nginx.tmpl")
+	tmpl, err = template.New("nginx.tmpl").Parse(`
+		upstream {{.Hostname}} {
+			server {{.IP}}:{{.Port}};
+		}
+
+		server {
+			listen 80;
+			server_name {{.Hostname}};
+
+			access_log /var/log/nginx/{{.Hostname}}.access.json.log;
+			error_log /var/log/nginx/{{.Hostname}}.access.log;
+
+			# include /etc/nginx/ssl-public.conf;
+
+			# require headers for http proxy
+			proxy_set_header Client-IP         $remote_addr;
+			proxy_set_header X-Real-IP         $remote_addr;
+			proxy_set_header X-Forwarded-For   $remote_addr;
+			proxy_set_header Host              $http_host;
+			proxy_set_header X-Forwarded-Proto $scheme;
+			proxy_set_header X-Forwarded-Port  $server_port;
+			proxy_set_header Upgrade           $http_upgrade;
+			proxy_set_header Connection        $http_connection;
+
+			proxy_http_version 1.1;
+			proxy_redirect off;
+			proxy_next_upstream off;
+			proxy_read_timeout 100s;
+
+			# error_page 502 /502.devctl.html;
+			# location /502.devctl.html {
+			#  return 502 'Nothing is running at port {{.Port}} on your host. For this to work, you need to check your the relevant project and start the corresponding server on OS X.';
+			# }
+
+			location / {
+				proxy_pass http://{{.Hostname}};
+			}
+		}
+	`)
 
 	handleError(err, true)
 
@@ -50,7 +88,7 @@ func (c *container) WriteConfig() {
 	handleError(err)
 
 	if nginxReload {
-		err := exec.Command("service", "nginx", "reload").Run()
+		err := exec.Command("nginx", "-s", "reload").Run()
 		handleError(err)
 	}
 }
@@ -60,6 +98,11 @@ func (c *container) DeleteConfig() {
 	fmt.Println("deleting conf " + fileName)
 	err := os.Remove(fileName)
 	handleError(err)
+
+	if nginxReload {
+		err := exec.Command("nginx", "-s", "reload").Run()
+		handleError(err)
+	}
 }
 
 func (c *container) fileName() string {
