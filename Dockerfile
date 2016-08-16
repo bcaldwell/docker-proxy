@@ -2,7 +2,7 @@ FROM nginx:1.10-alpine
 
 ADD devctl-proxy /devctl-proxy/devctl-proxy
 
-ADD docker-init.sh /devctl-proxy/docker-init.sh
+ADD scripts/docker-init.sh /devctl-proxy/docker-init.sh
 
 RUN chmod +x /devctl-proxy/*
 

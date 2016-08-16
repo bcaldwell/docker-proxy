@@ -71,7 +71,7 @@ type container struct {
 	ID       string
 	IP       string
 	Hostname string
-	Port     int
+	Port     string
 }
 
 func (c *container) SetIP(ip string) {

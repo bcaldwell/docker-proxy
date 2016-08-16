@@ -20,6 +20,18 @@ func main() {
 
 	containers := make(map[string]*container)
 
+	activeContainers, _ := client.ListContainers(docker.ListContainersOptions{})
+	for _, con := range activeContainers {
+		id := con.ID
+		container, _ := client.InspectContainer(id)
+		labels := container.Config.Labels
+		if _, ok := labels["devctl"]; ok {
+			addContainer(containers, id, labels)
+			containers[id].SetIP(getContainerIP(id))
+			containers[id].WriteConfig()
+		}
+	}
+
 	eventListener := make(chan *docker.APIEvents)
 
 	client.AddEventListener(eventListener)
@@ -31,14 +43,8 @@ func main() {
 				if event.Action == "create" {
 					id := event.Actor.ID
 					attributes := event.Actor.Attributes
-					if hostname, ok := attributes["devctl"]; ok {
-						hostname += ".devctl"
-						containers[id] = &container{
-							ID:       id,
-							Hostname: hostname,
-							Port:     80,
-						}
-					}
+					addContainer(containers, id, attributes)
+					fmt.Println(containers)
 				}
 				if event.Action == "connect" {
 					// event.Actor.ID is network id
@@ -73,6 +79,21 @@ func handleError(err error, fatal ...bool) {
 			log.Fatal(err)
 		} else {
 			log.Print(err)
+		}
+	}
+}
+
+func addContainer(containers map[string]*container, id string, labels map[string]string) {
+	if hostname, ok := labels["devctl"]; ok {
+		port := "80"
+		if devctlPort, ok := labels["devctl-port"]; ok {
+			port = devctlPort
+		}
+		hostname += ".devctl"
+		containers[id] = &container{
+			ID:       id,
+			Hostname: hostname,
+			Port:     port,
 		}
 	}
 }
