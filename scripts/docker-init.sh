@@ -1,5 +1,5 @@
 #!/bin/sh
 
-/devctl-proxy/devctl-proxy &
+/docker-proxy/docker-proxy &
 
 nginx -g "daemon off;"

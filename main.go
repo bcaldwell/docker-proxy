@@ -11,7 +11,7 @@ var client *docker.Client
 
 func main() {
 
-	fmt.Println("Starting devctl-proxy")
+	fmt.Println("Starting docker-proxy")
 
 	var err error
 	endpoint := "unix:///var/run/docker.sock"
@@ -25,7 +25,7 @@ func main() {
 		id := con.ID
 		container, _ := client.InspectContainer(id)
 		labels := container.Config.Labels
-		if _, ok := labels["devctl"]; ok {
+		if _, ok := labels["proxy-hostname"]; ok {
 			addContainer(containers, id, labels)
 			containers[id].SetIP(getContainerIP(id))
 			containers[id].WriteConfig()
@@ -84,12 +84,11 @@ func handleError(err error, fatal ...bool) {
 }
 
 func addContainer(containers map[string]*container, id string, labels map[string]string) {
-	if hostname, ok := labels["devctl"]; ok {
+	if hostname, ok := labels["proxy-hostname"]; ok {
 		port := "80"
-		if devctlPort, ok := labels["devctl-port"]; ok {
-			port = devctlPort
+		if proxyPort, ok := labels["proxy-port"]; ok {
+			port = proxyPort
 		}
-		hostname += ".devctl"
 		containers[id] = &container{
 			ID:       id,
 			Hostname: hostname,

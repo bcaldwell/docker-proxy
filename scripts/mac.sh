@@ -10,5 +10,5 @@ echo "\nbuilding docker image"
 sh scripts/docker-build.sh
 
 echo "\n starting docker container"
-echo "docker run -v /var/run/docker.sock:/var/run/docker.sock -it -p 8080:80 --rm devctl-proxy"
-docker run -v /var/run/docker.sock:/var/run/docker.sock -it -p 8080:80 --rm devctl-proxy
+echo "docker run -v /var/run/docker.sock:/var/run/docker.sock -it -p 8080:80 --rm benjamincaldwell/docker-proxy"
+docker run -v /var/run/docker.sock:/var/run/docker.sock -it -p 8080:80 --rm benjamincaldwell/docker-proxy
