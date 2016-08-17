@@ -44,7 +44,6 @@ func main() {
 					id := event.Actor.ID
 					attributes := event.Actor.Attributes
 					addContainer(containers, id, attributes)
-					fmt.Println(containers)
 				}
 				if event.Action == "connect" {
 					// event.Actor.ID is network id
