@@ -1,0 +1,27 @@
+cache:
+  paths:
+    - docker-proxy
+  key: "go-built-binary"
+  untracked: true
+
+build:
+  image: golang
+  stage: build
+  script:
+    - go get -t -d -v ./...
+    - env GOOS=linux GOARCH=amd64 go build -o docker-proxy
+
+deploy:
+  image: docker
+  stage: deploy
+  script:
+    - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
+    - docker build -t benjamincaldwell/docker-proxy .
+    - docker push benjamincaldwell/docker-proxy
+  tags:
+    - docker-build
+  only:
+    - master
+  cache:
+    paths:
+      - ~/docker/
